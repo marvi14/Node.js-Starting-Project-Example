@@ -55,34 +55,37 @@ function setupAuth(User, app, Config) {
     function (req, email, password, done) {
       // find a user whose email is the same as the forms email
       // we are checking to see if the user trying to login already exists
-      User.findOne({ 'profile.username': email }, function (err, user) {
-        // if there are any errors, return the error
-        if (err)
-          return done(err);
 
-        // check to see if theres already a user with that email
-        if (user) {
-          return done(null, false, 'That email is already taken.');
-        } else {
+      // User.findOne won't fire until we have all our data back from Twitter
+      process.nextTick(function () {
+        User.findOne({ 'profile.username': email }, function (err, user) {
+          // if there are any errors, return the error
+          if (err)
+            return done(err);
 
-          // if there is no user with that email
-          // create the user
-          var newUser = new User();
+          // check to see if theres already a user with that email
+          if (user) {
+            return done(null, false, 'That email is already taken.');
+          } else {
 
-          // set the user's local credentials
-          newUser.profile.username = email;
-          newUser.profile.password = newUser.generateHash(password);
+            // if there is no user with that email
+            // create the user
+            var newUser = new User();
 
-          // save the user
-          newUser.save(function (err) {
-            if (err)
-              throw err;
-            return done(null, newUser, 'User created successfully');
-          });
-        }
+            // set the user's local credentials
+            newUser.profile.username = email;
+            newUser.profile.password = newUser.generateHash(password);
 
+            // save the user
+            newUser.save(function (err) {
+              if (err)
+                throw err;
+              return done(null, newUser, 'User created successfully');
+            });
+          }
+
+        });
       });
-
     }));
 
   passport.use('local-login', new LocalStrategy({
@@ -123,7 +126,7 @@ function setupAuth(User, app, Config) {
 
   // MIDDLEWARE QUE VERIFICA QUE EL USUARIO ESTE LOGUEADO EN CADA REQUEST A LA API
   app.use(function (req, res, next) {
-    if (req.url.indexOf("/auth/facebook") > -1 || req.url.indexOf("/signup") > -1 || req.url.indexOf("/login") > -1 || req.session.user)
+    if (req.url.indexOf("/auth/") > -1 || req.session.user)
       next();
     else if (req.session.user == undefined) {
       return res.json({ title: 'Hello - Please Login To Your Account' });
@@ -131,8 +134,7 @@ function setupAuth(User, app, Config) {
   });
 
   // Express routes for auth
-  app.get('/auth/facebook',
-    passport.authenticate('facebook', { scope: ['email', 'user_birthday', 'user_likes'] })
+  app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_birthday', 'user_likes'] })
   );
 
   app.get('/auth/facebook/callback', function (req, res, next) {
@@ -153,7 +155,7 @@ function setupAuth(User, app, Config) {
     })(req, res, next);
   });
 
-  app.get('/signup', function (req, res, next) {
+  app.get('/auth/signup', function (req, res, next) {
     passport.authenticate('local-signup', function (err, user, info) {
       if (err) {
         return next(err); // will generate a 500 error
@@ -171,7 +173,7 @@ function setupAuth(User, app, Config) {
     })(req, res, next);
   });
 
-  app.get('/login', function (req, res, next) {
+  app.get('/auth/login', function (req, res, next) {
     passport.authenticate('local-login', function (err, user, info) {
       if (err) {
         return next(err); // will generate a 500 error
