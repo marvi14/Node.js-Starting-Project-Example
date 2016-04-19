@@ -10,12 +10,11 @@ module.exports = function (db) {
         lowercase: true
       },
       password: {
-        type: String,
-        required: true
+        type: String
       },
       picture: {
         type: String,
-        match: /^http:\/\//i
+        match: /^http(s?):\/\//i
       }
     },
     data: {
@@ -34,6 +33,7 @@ module.exports = function (db) {
   };
 
   var schema = new mongoose.Schema(userSchema);
+  schema.index({'profile.username': 1, 'data.oauth': 1}, {unique: true});
   // generating a hash
   schema.methods.generateHash = function (password) {
     return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);

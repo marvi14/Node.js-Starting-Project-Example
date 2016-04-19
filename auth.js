@@ -1,8 +1,10 @@
 // TODO: make setupAuth depend on the Config service...
-function setupAuth(User, app, Config) {
+function setupAuth(User, app, Config, Mandrill) {
   var passport = require('passport');
   var FacebookStrategy = require('passport-facebook').Strategy;
   var LocalStrategy = require('passport-local').Strategy;
+  var TwitterStrategy = require('passport-twitter').Strategy;
+  var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
   // High level serialize/de-serialize configuration for passport
   passport.serializeUser(function (user, done) {
@@ -27,7 +29,7 @@ function setupAuth(User, app, Config) {
     },
     function (accessToken, refreshToken, profile, done) {
       if (!profile.emails || !profile.emails.length) {
-        return done(null, false, 'No emails associated with this account!');
+        return done(null, null, 'No emails associated with this Facebook account!');
       }
 
       User.findOneAndUpdate(
@@ -44,6 +46,97 @@ function setupAuth(User, app, Config) {
           done(error, user, 'Facebook login succeded');
         });
     }));
+
+  passport.use(new TwitterStrategy({
+
+    consumerKey: Config.twitterConsumerKey,
+    consumerSecret: Config.twitterConsumerSecret,
+    userProfileURL: "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true",
+    callbackURL: 'http://localhost:3000/auth/twitter/callback'
+
+  },
+    function (token, tokenSecret, profile, done) {
+
+      // make the code asynchronous
+      // User.findOne won't fire until we have all our data back from Twitter
+      process.nextTick(function () {
+
+        User.findOne({ 'data.oauth': profile.id }, function (err, user) {
+
+          // if there is an error, stop everything and return that
+          // ie an error connecting to the database
+          if (err)
+            return done(err, null, 'An error ocurred trying to connect with Twitter');
+
+          Mandrill.sendEmail('', '', '', '');
+
+          // if the user is found then log them in
+          if (user) {
+            return done(null, user, 'Twitter user logged!'); // user found, return that user
+          } else {
+            // if there is no user, create them
+            var newUser = new User();
+
+            // set all of the user data that we need
+            //newUser.profile.username = profile.emails[0].value;
+            newUser.profile.username = profile.username;
+            newUser.profile.picture = profile.photos[0].value.replace('_normal', '');
+            newUser.data.oauth = profile.id;
+
+            // save our user into the database
+            newUser.save(function (err) {
+              if (err)
+                return done(err, null, 'Twitter user can not be created!');
+              return done(null, newUser, "Twitter user created!");
+            });
+          }
+        });
+
+      });
+
+    }));
+
+  passport.use(new GoogleStrategy({
+    clientID: Config.googleClientId,
+    clientSecret: Config.googleClientSecret,
+    callbackURL: "http://localhost:3000/auth/google/callback",
+  },
+    function (token, refreshToken, profile, done) {
+
+      // make the code asynchronous
+      // User.findOne won't fire until we have all our data back from Google
+      process.nextTick(function () {
+
+        // try to find the user based on their google id
+        User.findOne({ 'data.oauth': profile.id }, function (err, user) {
+          if (err)
+            return done(err, null, 'An error ocurred trying to connect with Google');
+
+          if (user) {
+
+            // if a user is found, log them in
+            return done(null, user, 'Google user logged!');
+          } else {
+            // if the user isnt in our database, create a new user
+            var newUser = new User();
+
+            // set all of the relevant information
+            newUser.profile.username = profile.emails[0].value;
+            newUser.data.oauth = profile.id;
+            newUser.profile.picture = profile._json['picture'];
+
+            // save the user
+            newUser.save(function (err) {
+              if (err)
+                return done(err, null, 'Google user can not be created!');
+              return done(null, newUser, 'Google user created!');
+            });
+          }
+        });
+      });
+
+    }));
+
 
   // Local-specific
   passport.use('local-signup', new LocalStrategy({
@@ -134,8 +227,7 @@ function setupAuth(User, app, Config) {
   });
 
   // Express routes for auth
-  app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_birthday', 'user_likes'] })
-  );
+  app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_birthday', 'user_likes'] }));
 
   app.get('/auth/facebook/callback', function (req, res, next) {
     passport.authenticate('facebook', function (err, user, info) {
@@ -154,6 +246,47 @@ function setupAuth(User, app, Config) {
       });
     })(req, res, next);
   });
+
+  app.get('/auth/twitter', passport.authenticate('twitter'));
+
+  app.get('/auth/twitter/callback', function (req, res, next) {
+    passport.authenticate('twitter', function (err, user, info) {
+      if (err) {
+        return next(err); // will generate a 500 error
+      }
+      // Generate a JSON response reflecting authentication status
+      if (!user) {
+        return res.status(500).send({ success: false, message: info });
+      }
+      req.login(user, function (err) {
+        if (err) {
+          return next(err);
+        }
+        return res.status(200).send({ success: true, message: info, user: user });
+      });
+    })(req, res, next);
+  });
+
+  app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+  app.get('/auth/google/callback', function (req, res, next) {
+    passport.authenticate('google', function (err, user, info) {
+      if (err) {
+        return next(err); // will generate a 500 error
+      }
+      // Generate a JSON response reflecting authentication status
+      if (!user) {
+        return res.status(500).send({ success: false, message: info });
+      }
+      req.login(user, function (err) {
+        if (err) {
+          return next(err);
+        }
+        return res.status(200).send({ success: true, message: info, user: user });
+      });
+    })(req, res, next);
+  });
+
 
   app.get('/auth/signup', function (req, res, next) {
     passport.authenticate('local-signup', function (err, user, info) {

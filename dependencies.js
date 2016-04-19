@@ -1,6 +1,7 @@
 var fs = require('fs');
 var fx = require('./fx');
 var Stripe = require('stripe');
+var mandrill =  require('./mandrill');
 
 module.exports = function(wagner) {
 
@@ -11,6 +12,7 @@ module.exports = function(wagner) {
     });
 
     wagner.factory('fx', fx);
+    wagner.factory('Mandrill', mandrill);
 
     wagner.factory('Config', function() {
         return JSON.parse(fs.readFileSync('./config.json').toString());
