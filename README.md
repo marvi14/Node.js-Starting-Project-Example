@@ -1,3 +1,14 @@
+# Command lines for git
+
+* `git init`
+* `git remote add origin https://user_name@bitbucket.org/path/git.git`
+* `git fetch`
+* `git checkout <branchName>`
+
+* `git commit -am "Title of the commit"`
+* `git push -u origin master`
+
+
 # Code Exercise
 
 In this part, you set up several REST API endpoints:
