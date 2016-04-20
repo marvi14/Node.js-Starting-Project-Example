@@ -18,3 +18,4 @@ Which depend on 5 services:
 * User
 * Stripe
 * fx
+* Mandrill
