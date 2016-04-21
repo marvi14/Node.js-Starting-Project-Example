@@ -1,5 +1,5 @@
 // TODO: make setupAuth depend on the Config service...
-function setupAuth(User, app, Config, Mandrill) {
+function setupAuth(User, app, Config, Sendgrid) {
   var passport = require('passport');
   var FacebookStrategy = require('passport-facebook').Strategy;
   var LocalStrategy = require('passport-local').Strategy;
@@ -67,8 +67,6 @@ function setupAuth(User, app, Config, Mandrill) {
           // ie an error connecting to the database
           if (err)
             return done(err, null, 'An error ocurred trying to connect with Twitter');
-
-          Mandrill.sendEmail('', '', '', '');
 
           // if the user is found then log them in
           if (user) {
