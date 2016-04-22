@@ -7,6 +7,7 @@
 
 * `git commit -am "Title of the commit"`
 * `git push -u origin master`
+* `git pull`
 
 
 # Code Exercise

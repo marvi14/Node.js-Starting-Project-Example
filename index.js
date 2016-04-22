@@ -1,16 +1,16 @@
 var express = require('express');
 var wagner = require('wagner-core');
 var cookieParser = require('cookie-parser');
-var flash    = require('connect-flash');
+var flash = require('connect-flash');
 
-require('./models')(wagner);
+require('./models/models')(wagner);
 require('./dependencies')(wagner);
 
 var app = express();
 app.use(cookieParser());
-app.use(flash()); 
+app.use(flash());
 
-app.use(function (req, res, next) {
+app.use(function(req, res, next) {
     res.append('Access-Control-Allow-Origin', req.headers.origin || '*');
     res.append('Access-Control-Allow-Credentials', true);
     res.append('Access-Control-Allow-Methods', ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']);
@@ -18,9 +18,9 @@ app.use(function (req, res, next) {
     next();
 });
 
-wagner.invoke(require('./auth'), { app: app });
+wagner.invoke(require('./api/auth'), { app: app });
 
-app.use('/api/v1', require('./api')(wagner));
+app.use('/api/v1', require('./api/api')(wagner));
 
 app.listen(3000);
 console.log('Listening on port 3000!');
