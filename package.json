@@ -7,6 +7,7 @@
     "express": "4.12.3",
     "express-session": "1.11.2",
     "http-status": "0.1.8",
+    "jsonwebtoken": "^5.7.0",
     "method-override": "~1.0.0",
     "mongoose": "4.0.3",
     "morgan": "~1.0.0",

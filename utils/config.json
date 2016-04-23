@@ -10,5 +10,6 @@
     "googleClientId": "265510546773-gdvlmtkcgknikmr1qgan39e58efmh5c3.apps.googleusercontent.com",
     "googleClientSecret": "JV3J2Pj8haB279o4jQZImk6y",
     "googleCallbackURL": "http://localhost:3000/auth/google/callback",
-    "sendGridApiKey": "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"
+    "sendGridApiKey": "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",
+    "tokenSecret" : "secrettokenForAPI" 
 }

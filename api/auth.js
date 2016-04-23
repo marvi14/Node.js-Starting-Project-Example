@@ -5,60 +5,62 @@ function setupAuth(User, app, Config, Sendgrid) {
     var LocalStrategy = require('passport-local').Strategy;
     var TwitterStrategy = require('passport-twitter').Strategy;
     var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+    var jwt = require('jsonwebtoken');
+    var tokenExpiration = 24 * 60 * 60;
 
     // High level serialize/de-serialize configuration for passport
-    passport.serializeUser(function(user, done) {
+    passport.serializeUser(function (user, done) {
         done(null, user._id);
     });
 
-    passport.deserializeUser(function(id, done) {
+    passport.deserializeUser(function (id, done) {
         User.
-        findOne({ _id: id }).
-        exec(done);
+            findOne({ _id: id }).
+            exec(done);
     });
 
     // Facebook-specific
     passport.use(new FacebookStrategy({
-            // TODO: and use the Config service here
-            clientID: Config.facebookClientId,
-            clientSecret: Config.facebookClientSecret,
-            callbackURL: Config.facebookCallbackURL,
-            // Necessary for new version of Facebook graph API
-            profileFields: ['id', 'emails', 'name', 'gender', 'displayName']
-        },
-        function(accessToken, refreshToken, profile, done) {
+        // TODO: and use the Config service here
+        clientID: Config.facebookClientId,
+        clientSecret: Config.facebookClientSecret,
+        callbackURL: Config.facebookCallbackURL,
+        // Necessary for new version of Facebook graph API
+        profileFields: ['id', 'emails', 'name', 'gender', 'displayName']
+    },
+        function (accessToken, refreshToken, profile, done) {
             if (!profile.emails || !profile.emails.length) {
                 return done(null, null, 'No emails associated with this Facebook account!');
             }
 
             User.findOneAndUpdate({ 'data.oauth': profile.id }, {
-                    $set: {
-                        'profile.username': profile.emails[0].value,
-                        'profile.picture': 'http://graph.facebook.com/' +
-                            profile.id.toString() + '/picture?type=large'
-                    }
-                }, { 'new': true, upsert: true, runValidators: true },
-                function(error, user) {
+                $set: {
+                    'profile.username': profile.emails[0].value,
+                    'profile.picture': 'http://graph.facebook.com/' +
+                    profile.id.toString() + '/picture?type=large'
+                }
+            }, { 'new': true, upsert: true, runValidators: true },
+                function (error, user) {
                     done(error, user, 'Facebook login succeded');
                 });
         }));
 
     passport.use(new TwitterStrategy({
 
-            consumerKey: Config.twitterConsumerKey,
-            consumerSecret: Config.twitterConsumerSecret,
-            callbackURL: Config.twitterCallbackURL,
-            userProfileURL: "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true"
+        consumerKey: Config.twitterConsumerKey,
+        consumerSecret: Config.twitterConsumerSecret,
+        callbackURL: Config.twitterCallbackURL,
+        userProfileURL: "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true"
 
 
-        },
-        function(token, tokenSecret, profile, done) {
+    },
+        function (token, tokenSecret, profile, done) {
 
             // make the code asynchronous
             // User.findOne won't fire until we have all our data back from Twitter
-            process.nextTick(function() {
+            process.nextTick(function () {
 
-                User.findOne({ 'data.oauth': profile.id }, function(err, user) {
+                User.findOne({ 'data.oauth': profile.id }, function (err, user) {
 
                     // if there is an error, stop everything and return that
                     // ie an error connecting to the database
@@ -79,7 +81,7 @@ function setupAuth(User, app, Config, Sendgrid) {
                         newUser.data.oauth = profile.id;
 
                         // save our user into the database
-                        newUser.save(function(err) {
+                        newUser.save(function (err) {
                             if (err)
                                 return done(err, null, 'Twitter user can not be created!');
                             return done(null, newUser, "Twitter user created!");
@@ -92,18 +94,18 @@ function setupAuth(User, app, Config, Sendgrid) {
         }));
 
     passport.use(new GoogleStrategy({
-            clientID: Config.googleClientId,
-            clientSecret: Config.googleClientSecret,
-            callbackURL: Config.googleCallbackURL
-        },
-        function(token, refreshToken, profile, done) {
+        clientID: Config.googleClientId,
+        clientSecret: Config.googleClientSecret,
+        callbackURL: Config.googleCallbackURL
+    },
+        function (token, refreshToken, profile, done) {
 
             // make the code asynchronous
             // User.findOne won't fire until we have all our data back from Google
-            process.nextTick(function() {
+            process.nextTick(function () {
 
                 // try to find the user based on their google id
-                User.findOne({ 'data.oauth': profile.id }, function(err, user) {
+                User.findOne({ 'data.oauth': profile.id }, function (err, user) {
                     if (err)
                         return done(err, null, 'An error ocurred trying to connect with Google');
 
@@ -121,7 +123,7 @@ function setupAuth(User, app, Config, Sendgrid) {
                         newUser.profile.picture = profile._json['picture'];
 
                         // save the user
-                        newUser.save(function(err) {
+                        newUser.save(function (err) {
                             if (err)
                                 return done(err, null, 'Google user can not be created!');
                             return done(null, newUser, 'Google user created!');
@@ -135,18 +137,18 @@ function setupAuth(User, app, Config, Sendgrid) {
 
     // Local-specific
     passport.use('local-signup', new LocalStrategy({
-            // by default, local strategy uses username and password, we will override with email
-            usernameField: 'email',
-            passwordField: 'password',
-            passReqToCallback: true // allows us to pass back the entire request to the callback
-        },
-        function(req, email, password, done) {
+        // by default, local strategy uses username and password, we will override with email
+        usernameField: 'email',
+        passwordField: 'password',
+        passReqToCallback: true // allows us to pass back the entire request to the callback
+    },
+        function (req, email, password, done) {
             // find a user whose email is the same as the forms email
             // we are checking to see if the user trying to login already exists
 
             // User.findOne won't fire until we have all our data back from Twitter
-            process.nextTick(function() {
-                User.findOne({ 'profile.username': email }, function(err, user) {
+            process.nextTick(function () {
+                User.findOne({ 'profile.username': email }, function (err, user) {
                     // if there are any errors, return the error
                     if (err)
                         return done(err);
@@ -165,7 +167,7 @@ function setupAuth(User, app, Config, Sendgrid) {
                         newUser.profile.password = newUser.generateHash(password);
 
                         // save the user
-                        newUser.save(function(err) {
+                        newUser.save(function (err) {
                             if (err)
                                 throw err;
                             return done(null, newUser, 'User created successfully');
@@ -177,16 +179,16 @@ function setupAuth(User, app, Config, Sendgrid) {
         }));
 
     passport.use('local-login', new LocalStrategy({
-            // by default, local strategy uses username and password, we will override with email
-            usernameField: 'email',
-            passwordField: 'password',
-            passReqToCallback: true // allows us to pass back the entire request to the callback
-        },
-        function(req, email, password, done) { // callback with email and password from our form
+        // by default, local strategy uses username and password, we will override with email
+        usernameField: 'email',
+        passwordField: 'password',
+        passReqToCallback: true // allows us to pass back the entire request to the callback
+    },
+        function (req, email, password, done) { // callback with email and password from our form
 
             // find a user whose email is the same as the forms email
             // we are checking to see if the user trying to login already exists
-            User.findOne({ 'profile.username': email }, function(err, user) {
+            User.findOne({ 'profile.username': email }, function (err, user) {
                 // if there are any errors, return the error before anything else
                 if (err)
                     return done(err);
@@ -213,19 +215,52 @@ function setupAuth(User, app, Config, Sendgrid) {
     app.use(passport.session());
 
     // MIDDLEWARE QUE VERIFICA QUE EL USUARIO ESTE LOGUEADO EN CADA REQUEST A LA API
-    app.use(function(req, res, next) {
-        if (req.url.indexOf("/auth/") > -1 || req.session.user)
+    app.use(function (req, res, next) {
+        if (req.url.indexOf("/auth") > -1 || req.user) {
             next();
-        else if (req.session.user == undefined) {
-            return res.json({ title: 'Hello - Please Login To Your Account' });
+        }
+        else if (req.user == undefined) {
+            //return res.json({ title: 'Hello - Please Login To Your Account' });
+
+            // check header or url parameters or post parameters for token
+            var token = '';
+            if (req.query)
+                token = req.query.token;
+            if (!token && req.headers)
+                token = req.headers['x-access-token'];
+            if (!token && req.body)
+                token = req.body.token;
+
+            // decode token
+            if (token) {
+
+                // verifies secret and checks exp
+                jwt.verify(token, Config.tokenSecret, function (err, decoded) {
+                    if (err) {
+                        return res.json({ success: false, message: 'Failed to authenticate token.' });
+                    } else {
+                        // if everything is good, save to request for use in other routes
+                        req.decoded = decoded;
+                        next();
+                    }
+                });
+            } else {
+
+                // if there is no token return an error
+                return res.status(403).send({
+                    success: false,
+                    message: 'No token provided.'
+                });
+
+            }
         }
     });
 
     // Express routes for auth
     app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_birthday', 'user_likes'] }));
 
-    app.get('/auth/facebook/callback', function(req, res, next) {
-        passport.authenticate('facebook', function(err, user, info) {
+    app.get('/auth/facebook/callback', function (req, res, next) {
+        passport.authenticate('facebook', function (err, user, info) {
             if (err) {
                 return next(err); // will generate a 500 error
             }
@@ -233,19 +268,22 @@ function setupAuth(User, app, Config, Sendgrid) {
             if (!user) {
                 return res.status(500).send({ success: false, message: info });
             }
-            req.login(user, function(err) {
+            req.login(user, function (err) {
                 if (err) {
                     return next(err);
                 }
-                return res.status(200).send({ success: true, message: info, user: user });
+                var token = jwt.sign(user, Config.tokenSecret, {
+                    expiresIn: tokenExpiration// expires in 24 hours
+                });
+                return res.status(200).send({ success: true, message: info, user: user, token: token });
             });
         })(req, res, next);
     });
 
     app.get('/auth/twitter', passport.authenticate('twitter'));
 
-    app.get('/auth/twitter/callback', function(req, res, next) {
-        passport.authenticate('twitter', function(err, user, info) {
+    app.get('/auth/twitter/callback', function (req, res, next) {
+        passport.authenticate('twitter', function (err, user, info) {
             if (err) {
                 return next(err); // will generate a 500 error
             }
@@ -253,19 +291,22 @@ function setupAuth(User, app, Config, Sendgrid) {
             if (!user) {
                 return res.status(500).send({ success: false, message: info });
             }
-            req.login(user, function(err) {
+            req.login(user, function (err) {
                 if (err) {
                     return next(err);
                 }
-                return res.status(200).send({ success: true, message: info, user: user });
+                var token = jwt.sign(user, Config.tokenSecret, {
+                    expiresIn: tokenExpiration// expires in 24 hours
+                });
+                return res.status(200).send({ success: true, message: info, user: user, token: token });
             });
         })(req, res, next);
     });
 
     app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-    app.get('/auth/google/callback', function(req, res, next) {
-        passport.authenticate('google', function(err, user, info) {
+    app.get('/auth/google/callback', function (req, res, next) {
+        passport.authenticate('google', function (err, user, info) {
             if (err) {
                 return next(err); // will generate a 500 error
             }
@@ -273,18 +314,21 @@ function setupAuth(User, app, Config, Sendgrid) {
             if (!user) {
                 return res.status(500).send({ success: false, message: info });
             }
-            req.login(user, function(err) {
+            req.login(user, function (err) {
                 if (err) {
                     return next(err);
                 }
-                return res.status(200).send({ success: true, message: info, user: user });
+                var token = jwt.sign(user, Config.tokenSecret, {
+                    expiresIn: tokenExpiration// expires in 24 hours
+                });
+                return res.status(200).send({ success: true, message: info, user: user, token: token });
             });
         })(req, res, next);
     });
 
 
-    app.get('/auth/signup', function(req, res, next) {
-        passport.authenticate('local-signup', function(err, user, info) {
+    app.get('/auth/signup', function (req, res, next) {
+        passport.authenticate('local-signup', function (err, user, info) {
             if (err) {
                 return next(err); // will generate a 500 error
             }
@@ -292,17 +336,20 @@ function setupAuth(User, app, Config, Sendgrid) {
             if (!user) {
                 return res.status(500).send({ success: false, message: info });
             }
-            req.login(user, function(err) {
+            req.login(user, function (err) {
                 if (err) {
                     return next(err);
                 }
-                return res.status(200).send({ success: true, message: info, user: user });
+                var token = jwt.sign(user, Config.tokenSecret, {
+                    expiresIn: tokenExpiration// expires in 24 hours
+                });
+                return res.status(200).send({ success: true, message: info, user: user, token: token });
             });
         })(req, res, next);
     });
 
-    app.get('/auth/login', function(req, res, next) {
-        passport.authenticate('local-login', function(err, user, info) {
+    app.get('/auth/login', function (req, res, next) {
+        passport.authenticate('local-login', function (err, user, info) {
             if (err) {
                 return next(err); // will generate a 500 error
             }
@@ -310,11 +357,14 @@ function setupAuth(User, app, Config, Sendgrid) {
             if (!user) {
                 return res.status(500).send({ success: false, message: info });
             }
-            req.login(user, function(err) {
+            req.login(user, function (err) {
                 if (err) {
                     return next(err);
                 }
-                return res.status(200).send({ success: true, message: info, user: user });
+                var token = jwt.sign(user, Config.tokenSecret, {
+                    expiresIn: tokenExpiration// expires in 24 hours
+                });
+                return res.status(200).send({ success: true, message: info, user: user, token: token });
             });
         })(req, res, next);
     });
