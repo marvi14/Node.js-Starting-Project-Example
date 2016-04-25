@@ -220,10 +220,10 @@ function setupAuth(User, app, Config, Sendgrid) {
             next();
         }
         else if (req.user == undefined) {
-            //return res.json({ title: 'Hello - Please Login To Your Account' });
+            //PUEDE NO ESTAR LOGUEADO EN LA WEB PERO SE UN PEDIDO A LA API DE LAS APPS
 
             // check header or url parameters or post parameters for token
-            var token = '';
+            var token = null;
             if (req.query)
                 token = req.query.token;
             if (!token && req.headers)
