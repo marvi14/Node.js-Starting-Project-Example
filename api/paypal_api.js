@@ -11,24 +11,25 @@ module.exports = function (wagner) {
         paypal.configure(Config.payPalApi);
     });
 
-    api.get('/createPayPalTransaction', wagner.invoke(function () {
+    api.get('/createPayPalTransaction', wagner.invoke(function (Config) {
         return function (req, res) {
+            var total = req.param('total');
             var payment = {
                 "intent": "sale",
                 "payer": {
                     "payment_method": "paypal"
                 },
                 "redirect_urls": {
-                    "return_url": "http://localhost:3000/api/v1/paypal/executePayPalTransaction",
-                    "cancel_url": "http://localhost:3000/api/v1/paypal/cancelPayPalTransaction"
+                    "return_url": Config.payPalApi.return_url,
+                    "cancel_url": Config.payPalApi.cancel_url
                 },
                 "transactions": [
                     {
                         "amount": {
-                            "total": "5.00",
+                            "total": total,
                             "currency": "USD"
                         },
-                        "description": "My awesome payment from PayPal!"
+                        "description": "PayPal Payment!"
                     }
                 ]
             };

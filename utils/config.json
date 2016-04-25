@@ -16,6 +16,8 @@
         "client_id": "AXBrtPdewfXiyv-SEVNrgM7J1Phbpyswdut6olsoS6ZJEABcaS_1RIX2VG8Nem7phO_XPNLQizul-iiw",
         "client_secret": "ECTRjZCqHhMUX6QGQUtF_MuAxeJG9_as3khwElQ5T9p0CeveXTmFX0s813hHj6n2AdU84XifM9_YPQYw",
         "host": "api.sandbox.paypal.com",
-        "port": ""
+        "port": "",
+        "return_url" : "http://localhost:3000/api/v1/paypal/executePayPalTransaction",
+        "cancel_url" : "http://localhost:3000/api/v1/paypal/cancelPayPalTransaction"
     }
 }
