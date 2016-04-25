@@ -216,7 +216,7 @@ function setupAuth(User, app, Config, Sendgrid) {
 
     // MIDDLEWARE QUE VERIFICA QUE EL USUARIO ESTE LOGUEADO EN CADA REQUEST A LA API
     app.use(function (req, res, next) {
-        if (req.url.indexOf("/auth") > -1 || req.user) {
+        if (req.url.indexOf("/auth") > -1 || req.url.indexOf("/paypal") > -1 ||req.user) {
             next();
         }
         else if (req.user == undefined) {

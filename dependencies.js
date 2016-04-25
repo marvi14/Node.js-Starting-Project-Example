@@ -1,7 +1,7 @@
 var fs = require('fs');
 var fx = require('./utils/fx');
 var Stripe = require('stripe');
-var sendgrid =  require('./utils/sendgrid');
+var sendgrid = require('./utils/sendgrid');
 
 module.exports = function(wagner) {
 
