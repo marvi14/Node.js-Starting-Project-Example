@@ -11,9 +11,10 @@ module.exports = function (wagner) {
         paypal.configure(Config.payPalApi);
     });
 
-    api.get('/createPayPalTransaction', wagner.invoke(function (Config) {
+    api.post('/createPayPalTransaction', wagner.invoke(function (Config) {
         return function (req, res) {
-            var total = req.param('total');
+            //ESTO DEBERIA SER UN POST QUE RECIBA UNA LISTA DE ID'S DE PRODUCTOS PARA CALCULAR EL TOTAL
+            var total = getTotal(req.body.services);
             var payment = {
                 "intent": "sale",
                 "payer": {
@@ -74,3 +75,11 @@ module.exports = function (wagner) {
 
     return api;
 };
+
+function getTotal(services) {
+    var total = 0;
+    _.each(services, function (service) {
+        total += service.price;
+    });
+    return total;
+}
