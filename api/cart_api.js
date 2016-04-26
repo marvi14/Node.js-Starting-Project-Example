@@ -34,6 +34,27 @@ module.exports = function (wagner) {
         //req.user.populate({ path: 'data.cart.product', model: 'Product' }, handleOne.bind(null, 'user', res));
     });
 
+    api.get('/user/:id', wagner.invoke(function (User) {
+        return function (req, res) {
+            // EN CASO DE NO TENER UN MIDDLEWARE QUE VERIFIQUE AL USUARIO, ESTO LO HARIA
+            // if (!req.user) {
+            //     return res.
+            //         status(status.UNAUTHORIZED).
+            //         json({ error: 'Not logged in' });
+            // }
+            User.findOne({ '_id': req.params.id }, function (error, user) {
+                if (error) {
+                    return res.status(status.INTERNAL_SERVER_ERROR).json({ 'error': error.toString() });
+                }
+                if (!user) {
+                    return res.status(status.NOT_FOUND).json({ 'error': 'User not found' });
+                } else {
+                    return res.json({ 'user': user });
+                }
+            });
+        };
+    }));
+
     api.post('/checkout', wagner.invoke(function (User, Stripe) {
         return function (req, res) {
             // Populate the products in the user's cart
