@@ -1,23 +1,25 @@
 {
-    "facebookClientId": "1137637229620760",
-    "facebookClientSecret": "c6095cb28e87f621ccfa5c81ddcc2435",
-    "facebookCallbackURL": "http://localhost:3000/auth/facebook/callback",
-    "stripeKey": "sk_test_3XODPwEyyLPyMN0vpuqS65qi",
-    "openExchangeRatesKey": "a2f9699904134a319d442e247dee75e6",
-    "twitterConsumerKey": "xdbUXDDIl6p39yUCObDz4kh7z",
-    "twitterConsumerSecret": "UpPxkp3059MiELQzsIR9qP24GNjdHpbYlu0qTzMydTXkoI1eS7",
-    "twitterCallbackURL": "http://localhost:3000/auth/twitter/callback",
-    "googleClientId": "265510546773-gdvlmtkcgknikmr1qgan39e58efmh5c3.apps.googleusercontent.com",
-    "googleClientSecret": "JV3J2Pj8haB279o4jQZImk6y",
-    "googleCallbackURL": "http://localhost:3000/auth/google/callback",
-    "sendGridApiKey": "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",
-    "tokenSecret": "secrettokenForAPI",
-    "payPalApi": {
-        "client_id": "AXBrtPdewfXiyv-SEVNrgM7J1Phbpyswdut6olsoS6ZJEABcaS_1RIX2VG8Nem7phO_XPNLQizul-iiw",
-        "client_secret": "ECTRjZCqHhMUX6QGQUtF_MuAxeJG9_as3khwElQ5T9p0CeveXTmFX0s813hHj6n2AdU84XifM9_YPQYw",
-        "host": "api.sandbox.paypal.com",
-        "port": "",
-        "return_url" : "http://localhost:3000/api/v1/paypal/executePayPalTransaction",
-        "cancel_url" : "http://localhost:3000/api/v1/paypal/cancelPayPalTransaction"
-    }
+  "facebookClientId": "1137637229620760",
+  "facebookClientSecret": "c6095cb28e87f621ccfa5c81ddcc2435",
+  "facebookCallbackURL": "http://localhost:3000/auth/facebook/callback",
+  "stripeKey": "sk_test_3XODPwEyyLPyMN0vpuqS65qi",
+  "openExchangeRatesKey": "a2f9699904134a319d442e247dee75e6",
+  "twitterConsumerKey": "xdbUXDDIl6p39yUCObDz4kh7z",
+  "twitterConsumerSecret": "UpPxkp3059MiELQzsIR9qP24GNjdHpbYlu0qTzMydTXkoI1eS7",
+  "twitterCallbackURL": "http://localhost:3000/auth/twitter/callback",
+  "googleClientId": "265510546773-gdvlmtkcgknikmr1qgan39e58efmh5c3.apps.googleusercontent.com",
+  "googleClientSecret": "JV3J2Pj8haB279o4jQZImk6y",
+  "googleCallbackURL": "http://localhost:3000/auth/google/callback",
+  "sendGridApiKey": "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",
+  "tokenSecret": "secrettokenForAPI",
+  "payPalApi": {
+    "client_id": "AXBrtPdewfXiyv-SEVNrgM7J1Phbpyswdut6olsoS6ZJEABcaS_1RIX2VG8Nem7phO_XPNLQizul-iiw",
+    "client_secret": "ECTRjZCqHhMUX6QGQUtF_MuAxeJG9_as3khwElQ5T9p0CeveXTmFX0s813hHj6n2AdU84XifM9_YPQYw",
+    "host": "api.sandbox.paypal.com",
+    "port": "",
+    "return_url": "http://localhost:3000/api/v1/paypal/executePayPalTransaction",
+    "cancel_url": "http://localhost:3000/api/v1/paypal/cancelPayPalTransaction"
+  },
+  "devConnectionString": "mongodb://localhost:27017/test",
+  "prodConnectionString": "mongodb://msanandrea:facuyema14@ds039185.mlab.com:39185/marvitest"
 }

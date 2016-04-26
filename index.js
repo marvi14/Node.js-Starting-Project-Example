@@ -3,8 +3,8 @@ var wagner = require('wagner-core');
 var cookieParser = require('cookie-parser');
 var flash = require('connect-flash');
 
-require('./models/models')(wagner);
 require('./dependencies')(wagner);
+require('./models/models')(wagner);
 
 var app = express();
 app.use(cookieParser());
@@ -24,6 +24,14 @@ app.use('/api/v1', require('./api/products_api')(wagner));
 app.use('/api/v1', require('./api/category_api')(wagner));
 app.use('/api/v1', require('./api/cart_api')(wagner));
 app.use('/api/v1', require('./api/paypal_api')(wagner));
+
+app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/index.html');
+});
+
+app.get(/^(.+)$/, function (req, res) {
+    res.sendFile(__dirname + req.params[0]);
+});
 
 app.listen(3000);
 console.log('Listening on port 3000!');

@@ -1,10 +1,12 @@
 var mongoose = require('mongoose');
 var _ = require('underscore');
 
-module.exports = function(wagner) {
-    mongoose.connect('mongodb://localhost:27017/test');
+module.exports = function (wagner) {
+    wagner.invoke(function (Config) {
+        mongoose.connect(Config.prodConnectionString || Config.devConnectionString);
+    });
 
-    wagner.factory('db', function() {
+    wagner.factory('db', function () {
         return mongoose;
     });
 
@@ -13,16 +15,16 @@ module.exports = function(wagner) {
 
     var models = {
         Category: Category
-       // User: User
+        // User: User
     };
 
     // To ensure DRY-ness, register factories in a loop
-    _.each(models, function(value, key) {
-        wagner.factory(key, function() {
+    _.each(models, function (value, key) {
+        wagner.factory(key, function () {
             return value;
         });
     });
-    
+
     wagner.factory('User', require('./user'));
     wagner.factory('Product', require('./product'));
 

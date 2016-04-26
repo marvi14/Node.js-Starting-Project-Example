@@ -31,6 +31,7 @@
   "scripts": {
     "check-credentials": "mocha part1.js",
     "test": "mocha test.js",
-    "watch": "gulp watch"
+    "watch": "gulp watch",
+    "start": "node index.js"
   }
 }
