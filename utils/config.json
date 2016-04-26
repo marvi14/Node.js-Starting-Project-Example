@@ -21,5 +21,5 @@
     "cancel_url": "http://localhost:3000/api/v1/paypal/cancelPayPalTransaction"
   },
   "devConnectionString": "mongodb://localhost:27017/test",
-  "prodConnectionString": "mongodb://msanandrea:facuyema14@ds039185.mlab.com:39185/marvitest"
+  "prodConnectionString": "mongodb://heroku_6l9zlfxm:ud0mc9f5skg9ou96qsfctf470f@ds021671.mlab.com:21671/heroku_6l9zlfxm"
 }
