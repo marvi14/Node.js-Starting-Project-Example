@@ -25,13 +25,5 @@ app.use('/api/v1', require('./api/category_api')(wagner));
 app.use('/api/v1', require('./api/cart_api')(wagner));
 app.use('/api/v1', require('./api/paypal_api')(wagner));
 
-app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/index.html');
-});
-
-app.get(/^(.+)$/, function (req, res) {
-    res.sendFile(__dirname + req.params[0]);
-});
-
 app.listen(3000);
 console.log('Listening on port 3000!');
